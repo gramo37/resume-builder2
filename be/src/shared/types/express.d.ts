@@ -1,9 +1,11 @@
-import type { JwtPayload } from '../helpers/jwt';
-
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload;
+      user?: {
+        sub: string;
+        username: string;
+      };
+      accessToken?: string;
     }
   }
 }

@@ -34,8 +34,13 @@ services:
       DB_NAME: applyant
       DB_USER: postgres
       DB_PASSWORD: postgres
-      JWT_SECRET: change-this-to-a-long-random-string
-      JWT_EXPIRES_IN: 7d
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID}
+      COGNITO_CLIENT_SECRET: ${COGNITO_CLIENT_SECRET:-}
+      COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
     depends_on:
       postgres:
         condition: service_healthy

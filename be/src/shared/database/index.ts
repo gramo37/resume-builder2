@@ -9,7 +9,7 @@ export async function connectDatabase(): Promise<void> {
   console.log('Database connection established');
 
   if (env.isDev) {
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log('Database models synced');
   }
 }

@@ -14,11 +14,11 @@
     "node": ">=20"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1131.0",
+    "aws-jwt-verify": "^5.2.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.8"
@@ -26,7 +26,6 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.20.2",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"

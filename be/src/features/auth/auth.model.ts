@@ -3,9 +3,9 @@ import { sequelize } from '../../shared/database/sequelize';
 
 export interface UserAttributes {
   id: number;
+  cognitoSub: string;
   name: string;
   email: string;
-  password: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -14,9 +14,9 @@ type UserCreationAttributes = Optional<UserAttributes, 'id' | 'createdAt' | 'upd
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   declare id: number;
+  declare cognitoSub: string;
   declare name: string;
   declare email: string;
-  declare password: string;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -28,6 +28,11 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
+    cognitoSub: {
+      type: DataTypes.STRING(64),
+      allowNull: false,
+      unique: true,
+    },
     name: {
       type: DataTypes.STRING(120),
       allowNull: false,
@@ -36,10 +41,6 @@ User.init(
       type: DataTypes.STRING(255),
       allowNull: false,
       unique: true,
-    },
-    password: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
     },
   },
   {

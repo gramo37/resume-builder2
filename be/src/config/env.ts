@@ -21,8 +21,10 @@ export const env = {
     user: process.env.DB_USER ?? 'postgres',
     password: process.env.DB_PASSWORD ?? 'postgres',
   },
-  jwt: {
-    secret: required('JWT_SECRET'),
-    expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
+  cognito: {
+    region: process.env.COGNITO_REGION ?? process.env.AWS_REGION ?? 'us-east-1',
+    userPoolId: required('COGNITO_USER_POOL_ID'),
+    clientId: required('COGNITO_CLIENT_ID'),
+    clientSecret: process.env.COGNITO_CLIENT_SECRET,
   },
 } as const;

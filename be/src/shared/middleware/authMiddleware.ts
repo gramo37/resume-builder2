@@ -1,8 +1,8 @@
 import type { RequestHandler } from 'express';
+import { accessTokenVerifier } from '../aws/cognito';
 import { AppError } from '../helpers/appError';
-import { verifyToken } from '../helpers/jwt';
 
-export const authMiddleware: RequestHandler = (req, _res, next) => {
+export const authMiddleware: RequestHandler = async (req, _res, next) => {
   const header = req.headers.authorization;
 
   if (!header?.startsWith('Bearer ')) {
@@ -10,8 +10,15 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
     return;
   }
 
+  const accessToken = header.slice(7);
+
   try {
-    req.user = verifyToken(header.slice(7));
+    const payload = await accessTokenVerifier.verify(accessToken);
+    req.user = {
+      sub: payload.sub,
+      username: payload.username,
+    };
+    req.accessToken = accessToken;
     next();
   } catch {
     next(new AppError(401, 'Invalid or expired token'));

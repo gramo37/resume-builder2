@@ -1,0 +1,57 @@
+:root {
+  --color-ink: #1a2332;
+  --color-ink-soft: #4a5565;
+  --color-paper: #f4efe6;
+  --color-paper-raised: #fffdf8;
+  --color-line: #e5dccf;
+  --color-forest: #1e3d34;
+  --color-forest-soft: #2b5448;
+  --color-accent: #c45c26;
+  --color-accent-hover: #a84b1c;
+  --color-danger: #b42318;
+  --color-danger-soft: #fde8e6;
+  --shadow-card: 0 24px 60px rgba(26, 35, 50, 0.12);
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
