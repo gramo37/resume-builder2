@@ -3,6 +3,7 @@ import { sequelize } from './sequelize';
 import './models';
 
 export { sequelize };
+export { User, type UserAttributes } from './models';
 
 export async function connectDatabase(): Promise<void> {
   await sequelize.authenticate();

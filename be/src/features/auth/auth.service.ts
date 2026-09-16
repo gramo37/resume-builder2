@@ -18,7 +18,7 @@ import {
   mapCognitoError,
   toCognitoTokens,
 } from '../../shared/aws/cognito';
-import { User } from './auth.model';
+import { User } from '../../shared/database';
 import type {
   AuthResult,
   AuthUser,
