@@ -1,6 +1,11 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AppLayout } from '@/app/layouts/AppLayout'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
+import { AutomationsPage } from '@/features/automations/pages/AutomationsPage'
+import { HomePage } from '@/features/home/pages/HomePage'
+import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
+import { JobsPage } from '@/features/jobs/pages/JobsPage'
+import { PeoplePage } from '@/features/people/pages/PeoplePage'
 import { GuestRoute } from './GuestRoute'
 import { paths } from './paths'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -19,17 +24,38 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        path: paths.dashboard,
-        element: <DashboardPage />,
+        element: <AppLayout />,
+        children: [
+          {
+            path: paths.home,
+            element: <HomePage />,
+          },
+          {
+            path: paths.automations,
+            element: <AutomationsPage />,
+          },
+          {
+            path: paths.jobs,
+            element: <JobsPage />,
+          },
+          {
+            path: paths.people,
+            element: <PeoplePage />,
+          },
+          {
+            path: paths.integrations,
+            element: <IntegrationsPage />,
+          },
+        ],
       },
     ],
   },
   {
     path: paths.root,
-    element: <Navigate to={paths.dashboard} replace />,
+    element: <Navigate to={paths.home} replace />,
   },
   {
     path: '*',
-    element: <Navigate to={paths.dashboard} replace />,
+    element: <Navigate to={paths.home} replace />,
   },
 ])

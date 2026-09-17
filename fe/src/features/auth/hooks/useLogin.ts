@@ -15,7 +15,7 @@ export function useLogin() {
     onSuccess: (data) => {
       setSession(data)
       queryClient.setQueryData(authKeys.me(), data.user)
-      void navigate(paths.dashboard, { replace: true })
+      void navigate(paths.home, { replace: true })
     },
   })
 }

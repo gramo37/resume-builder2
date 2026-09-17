@@ -1,5 +1,9 @@
 export const paths = {
   root: '/',
   login: '/login',
-  dashboard: '/dashboard',
+  home: '/home',
+  automations: '/automations',
+  jobs: '/jobs',
+  people: '/people',
+  integrations: '/integrations',
 } as const

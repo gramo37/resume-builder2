@@ -1,0 +1,136 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  width: 260px;
+  height: 100vh;
+  padding: 1.4rem 0.9rem 1rem;
+  color: #f6f1e8;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at top left, rgba(196, 92, 38, 0.28), transparent 46%),
+    linear-gradient(180deg, var(--color-forest) 0%, #142821 100%);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem 0.2rem;
+}
+
+.logo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 650;
+}
+
+.mark {
+  color: rgba(246, 241, 232, 0.55);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.72rem 0.85rem;
+  border-radius: 12px;
+  color: rgba(246, 241, 232, 0.78);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.link:hover {
+  color: #f6f1e8;
+  background: rgba(246, 241, 232, 0.08);
+}
+
+.active {
+  color: #f6f1e8;
+  background: rgba(196, 92, 38, 0.24);
+}
+
+.footer {
+  margin-top: auto;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border-top: 1px solid rgba(246, 241, 232, 0.1);
+}
+
+.user {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.userName {
+  margin: 0;
+  font-weight: 650;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  margin: 0;
+  color: rgba(246, 241, 232, 0.62);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signOut {
+  min-height: 42px;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(246, 241, 232, 0.18);
+  border-radius: 12px;
+  color: #f6f1e8;
+  background: transparent;
+  font-weight: 600;
+  text-align: left;
+}
+
+.signOut:hover:not(:disabled) {
+  background: rgba(246, 241, 232, 0.08);
+}
+
+.signOut:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: fixed;
+    z-index: 30;
+    inset: 0 auto 0 0;
+    height: 100%;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-100%);
+    transition: transform 200ms ease, visibility 200ms ease;
+  }
+
+  .open {
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+}

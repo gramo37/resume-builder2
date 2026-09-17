@@ -1,0 +1,37 @@
+.page {
+  width: min(100%, 760px);
+}
+
+.kicker {
+  margin: 0 0 0.6rem;
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 520;
+}
+
+.copy {
+  max-width: 38rem;
+  color: var(--color-ink-soft);
+}
+
+.copy p {
+  margin: 0;
+}
+
+.card {
+  margin-top: 1.6rem;
+  padding: 1.5rem 1.6rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper-raised);
+  box-shadow: var(--shadow-card);
+}
