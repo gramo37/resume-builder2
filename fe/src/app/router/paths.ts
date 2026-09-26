@@ -6,4 +6,5 @@ export const paths = {
   jobs: '/jobs',
   people: '/people',
   integrations: '/integrations',
+  resume: '/resume',
 } as const

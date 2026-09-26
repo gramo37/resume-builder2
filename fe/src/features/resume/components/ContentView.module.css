@@ -1,0 +1,119 @@
+.title {
+  margin: 0;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--resume-border, #dddddd);
+  color: var(--resume-accent, #2563eb);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.entries,
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.groups {
+  gap: 8px;
+}
+
+.entry,
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.entryHead,
+.listRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entryTitle,
+.groupLabel,
+.body,
+.entrySub,
+.entryMeta {
+  margin: 0;
+}
+
+.entryTitle,
+.groupLabel {
+  font-weight: 600;
+}
+
+.entrySub,
+.entryMeta {
+  color: var(--resume-muted, #666666);
+}
+
+.entryMeta {
+  font-size: 0.92em;
+  white-space: nowrap;
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bullet {
+  margin: 0;
+  padding-left: 12px;
+  position: relative;
+}
+
+.bullet::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--resume-muted, #666666);
+}
+
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  color: var(--resume-muted, #666666);
+}
+
+.contact a {
+  color: var(--resume-accent, #2563eb);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #ececec;
+  line-height: 1.45;
+}
+
+.divider {
+  width: 100%;
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid var(--resume-border, #dddddd);
+}
+
+.richText {
+  margin: 0;
+  white-space: pre-wrap;
+}

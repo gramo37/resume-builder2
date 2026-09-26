@@ -6,6 +6,7 @@ import { HomePage } from '@/features/home/pages/HomePage'
 import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
 import { JobsPage } from '@/features/jobs/pages/JobsPage'
 import { PeoplePage } from '@/features/people/pages/PeoplePage'
+import { ResumeBuilderPage } from '@/features/resume/pages/ResumeBuilderPage'
 import { GuestRoute } from './GuestRoute'
 import { paths } from './paths'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -45,6 +46,10 @@ export const router = createBrowserRouter([
           {
             path: paths.integrations,
             element: <IntegrationsPage />,
+          },
+          {
+            path: paths.resume,
+            element: <ResumeBuilderPage />,
           },
         ],
       },

@@ -1,0 +1,36 @@
+.page {
+  box-sizing: border-box;
+  overflow: visible;
+  color: #222;
+  background: #fff;
+  overflow-wrap: break-word;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.page h1,
+.page h2,
+.page h3,
+.page p,
+.page ul {
+  margin: 0;
+}
+
+.page ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page a:hover {
+  text-decoration: underline;
+}

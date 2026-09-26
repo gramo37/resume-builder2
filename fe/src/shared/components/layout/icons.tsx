@@ -67,6 +67,13 @@ export function SidebarIcon({ name }: IconProps) {
           <rect x="7" y="8" width="10" height="8" rx="2" />
         </Svg>
       )
+    case 'resume':
+      return (
+        <Svg>
+          <rect x="6" y="3" width="12" height="18" rx="2" />
+          <path d="M9 8h6M9 12h6M9 16h4" />
+        </Svg>
+      )
   }
 }
 
