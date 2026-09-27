@@ -11,6 +11,7 @@ import type {
   ResumeData,
   ResumeDocument,
 } from './types/resume'
+import { columnDropId, moveLayoutNode } from './editor/layoutEdit'
 import { gridTemplateColumns, placementStyle, resolveThemeColor } from './utils/styleToCss'
 
 function componentIds(node: AbstractNode): string[] {
@@ -337,5 +338,75 @@ describe('data binding', () => {
       return
     }
     expect(list.items.map((item) => item.primary)).toEqual(['Hackathon winner'])
+  })
+})
+
+function gridChildIds(layout: LayoutNode, gridId: string): string[] {
+  const walk = (node: LayoutNode): string[] | null => {
+    if (node.type === 'grid') {
+      if (node.id === gridId) {
+        return node.children.map((child) => child.id)
+      }
+      for (const child of node.children) {
+        const found = walk(child)
+        if (found) {
+          return found
+        }
+      }
+    }
+    if (node.type === 'repeat') {
+      return walk(node.children)
+    }
+    return null
+  }
+  return walk(layout) ?? []
+}
+
+describe('moveLayoutNode', () => {
+  const layout = sampleResume.template.layout
+
+  it('reorders sections inside a column', () => {
+    const moved = moveLayoutNode(layout, 'experience', 'summary')
+    expect(gridChildIds(moved, 'main_content')).toEqual(['experience', 'summary', 'projects', 'education'])
+    expect(gridChildIds(layout, 'main_content')).toEqual(['summary', 'experience', 'projects', 'education'])
+  })
+
+  it('moves a section into another column', () => {
+    const moved = moveLayoutNode(layout, 'skills', 'summary')
+    expect(gridChildIds(moved, 'sidebar')).toEqual(['languages', 'certifications'])
+    expect(gridChildIds(moved, 'main_content')).toEqual([
+      'skills',
+      'summary',
+      'experience',
+      'projects',
+      'education',
+    ])
+    expect(gridChildIds(layout, 'sidebar')).toEqual(['skills', 'languages', 'certifications'])
+  })
+
+  it('appends a section when dropped on an empty column target', () => {
+    const moved = moveLayoutNode(layout, 'experience', columnDropId('sidebar'))
+    expect(gridChildIds(moved, 'main_content')).toEqual(['summary', 'projects', 'education'])
+    expect(gridChildIds(moved, 'sidebar')).toEqual(['skills', 'languages', 'certifications', 'experience'])
+  })
+
+  it('leaves the layout untouched for an unknown section', () => {
+    expect(moveLayoutNode(layout, 'missing', 'summary')).toBe(layout)
+    expect(moveLayoutNode(layout, 'experience', 'experience')).toBe(layout)
+  })
+
+  it('reorders a single-column layout', () => {
+    const single = singleColumnResume.template.layout
+    const moved = moveLayoutNode(single, 'experience', 'summary')
+    expect(gridChildIds(moved, 'page')).toEqual([
+      'header',
+      'experience',
+      'summary',
+      'projects',
+      'education',
+      'skills',
+      'languages',
+      'certifications',
+    ])
   })
 })

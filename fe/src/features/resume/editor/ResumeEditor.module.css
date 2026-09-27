@@ -1,0 +1,61 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 520px;
+  height: calc(100vh - 8.5rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 253, 248, 0.72);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.tab,
+.tabActive {
+  min-height: 36px;
+  padding: 0 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab {
+  background: transparent;
+  color: var(--color-ink-soft);
+}
+
+.tabActive {
+  background: var(--color-forest);
+  color: #fffdf8;
+}
+
+.panel,
+.jsonPanel {
+  min-height: 0;
+  flex: 1;
+}
+
+.panel {
+  overflow: auto;
+  padding: 0.85rem;
+}
+
+.jsonPanel {
+  display: flex;
+  padding: 0.85rem;
+}
+
+.jsonPanel > * {
+  flex: 1;
+  min-height: 0;
+}

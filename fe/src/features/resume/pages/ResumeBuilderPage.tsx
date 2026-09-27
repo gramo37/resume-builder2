@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { ResumePreview } from '../components/ResumePreview'
 import { sampleResume, sampleResumeSource } from '../data/sampleResume'
-import { JsonEditor } from '../editor/JsonEditor'
+import { ResumeEditor } from '../editor/ResumeEditor'
 import { PdfButton } from '../pdf/PdfButton'
 import type { ResumeDocument } from '../types/resume'
 import { parseResumeJson } from '../schema/validateResume'
@@ -15,6 +15,17 @@ export function ResumeBuilderPage() {
   const [resume, setResume] = useState<ResumeDocument>(sampleResume)
   const [error, setError] = useState<string | null>(null)
 
+  function handleResumeChange(next: ResumeDocument) {
+    setError(null)
+    setResume(next)
+    setDraft(JSON.stringify(next, null, 2))
+  }
+
+  function handleShowJson() {
+    setError(null)
+    setDraft(JSON.stringify(resume, null, 2))
+  }
+
   function handleApply() {
     const result = parseResumeJson(draft)
     if (!result.ok) {
@@ -24,6 +35,7 @@ export function ResumeBuilderPage() {
 
     setError(null)
     setResume(result.resume)
+    setDraft(JSON.stringify(result.resume, null, 2))
   }
 
   function handleReset() {
@@ -37,18 +49,21 @@ export function ResumeBuilderPage() {
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Resume Builder</p>
-          <h1 className={styles.title}>JSON to A4 resume</h1>
+          <h1 className={styles.title}>Resume editor</h1>
         </div>
         <PdfButton targetRef={pageRef} resume={resume} />
       </header>
 
       <div className={styles.workspace}>
-        <JsonEditor
-          value={draft}
+        <ResumeEditor
+          resume={resume}
+          draft={draft}
           error={error}
-          onChange={setDraft}
-          onApply={handleApply}
-          onReset={handleReset}
+          onResumeChange={handleResumeChange}
+          onDraftChange={setDraft}
+          onShowJson={handleShowJson}
+          onApplyJson={handleApply}
+          onResetJson={handleReset}
         />
         <ResumePreview resume={resume} pageRef={pageRef} />
       </div>

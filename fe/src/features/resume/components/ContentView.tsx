@@ -304,6 +304,9 @@ function boxStyle(style?: ComponentStyle): ComponentStyle | undefined {
 
   const next: ComponentStyle = { ...style }
   delete next.color
+  delete next.font_size
+  delete next.font_weight
+  delete next.text_transform
   delete next.border
   delete next.border_bottom
   delete next.border_top
@@ -326,11 +329,13 @@ function titleStyle(style: ComponentStyle | undefined, theme: ResumeTheme): CSSP
   if (style?.border_bottom) {
     css.borderBottom = componentStyleToCss({ border_bottom: style.border_bottom }, theme).borderBottom
   }
-  if (heading?.font_size != null) {
-    css.fontSize = heading.font_size
+  const fontSize = style?.font_size ?? heading?.font_size
+  if (fontSize != null) {
+    css.fontSize = fontSize
   }
-  if (heading?.font_weight != null) {
-    css.fontWeight = heading.font_weight
+  const fontWeight = style?.font_weight ?? heading?.font_weight
+  if (fontWeight != null) {
+    css.fontWeight = fontWeight
   }
   return css
 }
