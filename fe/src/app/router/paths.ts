@@ -7,4 +7,6 @@ export const paths = {
   people: '/people',
   integrations: '/integrations',
   resume: '/resume',
+  resumeTemplate: '/resume/template',
+  resumeEditor: (id: number | string) => `/resume/${id}`,
 } as const

@@ -1,0 +1,236 @@
+{
+  "page": {
+    "size": "A4",
+    "orientation": "portrait",
+    "margin": {
+      "top": 32,
+      "right": 32,
+      "bottom": 32,
+      "left": 32
+    }
+  },
+  "theme": {
+    "font_family": "Inter",
+    "colors": {
+      "text": "#222222",
+      "muted": "#666666",
+      "heading": "#111111",
+      "accent": "#2563EB",
+      "border": "#DDDDDD",
+      "background": "#FFFFFF"
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "id": "page",
+    "columns": [
+      "1fr"
+    ],
+    "rows": "auto",
+    "gap": 18,
+    "children": [
+      {
+        "type": "component",
+        "id": "header",
+        "component_id": "header"
+      },
+      {
+        "type": "grid",
+        "id": "body",
+        "columns": [
+          "30%",
+          "70%"
+        ],
+        "gap": 24,
+        "children": [
+          {
+            "type": "grid",
+            "id": "sidebar",
+            "columns": [
+              "1fr"
+            ],
+            "gap": 18,
+            "children": [
+              {
+                "type": "component",
+                "id": "skills",
+                "component_id": "skills_section"
+              },
+              {
+                "type": "component",
+                "id": "languages",
+                "component_id": "languages_section"
+              },
+              {
+                "type": "component",
+                "id": "certifications",
+                "component_id": "certifications_section"
+              }
+            ]
+          },
+          {
+            "type": "grid",
+            "id": "main_content",
+            "columns": [
+              "1fr"
+            ],
+            "gap": 20,
+            "children": [
+              {
+                "type": "component",
+                "id": "summary",
+                "component_id": "summary_section"
+              },
+              {
+                "type": "component",
+                "id": "experience",
+                "component_id": "experience_section"
+              },
+              {
+                "type": "component",
+                "id": "projects",
+                "component_id": "projects_section"
+              },
+              {
+                "type": "component",
+                "id": "education",
+                "component_id": "education_section"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "components": {
+    "header": {
+      "type": "section",
+      "children": [
+        {
+          "type": "component",
+          "component_id": "name"
+        },
+        {
+          "type": "component",
+          "component_id": "headline"
+        },
+        {
+          "type": "component",
+          "component_id": "contact"
+        }
+      ],
+      "style": {
+        "align_items": "center",
+        "gap": 6
+      }
+    },
+    "name": {
+      "type": "text",
+      "binding": {
+        "source": "data",
+        "entity": "person",
+        "id": "person_001",
+        "field": "name"
+      },
+      "style": {
+        "font_size": 26,
+        "font_weight": 700,
+        "color": "theme.heading"
+      }
+    },
+    "headline": {
+      "type": "text",
+      "binding": {
+        "source": "data",
+        "entity": "person",
+        "id": "person_001",
+        "field": "headline"
+      },
+      "style": {
+        "font_size": 11,
+        "color": "theme.muted"
+      }
+    },
+    "contact": {
+      "type": "contact",
+      "binding": {
+        "source": "data",
+        "entity": "contact",
+        "id": "contact_001"
+      },
+      "style": {
+        "font_size": 9,
+        "gap": 10
+      }
+    },
+    "skills_section": {
+      "type": "section",
+      "title": "Skills",
+      "binding": {
+        "source": "data",
+        "collection": "skills"
+      },
+      "renderer": "skill_groups",
+      "style": {
+        "color": "theme.accent",
+        "gap": 8
+      }
+    },
+    "languages_section": {
+      "type": "section",
+      "title": "Languages",
+      "binding": {
+        "source": "data",
+        "collection": "languages"
+      },
+      "renderer": "list"
+    },
+    "certifications_section": {
+      "type": "section",
+      "title": "Certifications",
+      "binding": {
+        "source": "data",
+        "collection": "certifications"
+      },
+      "renderer": "list"
+    },
+    "summary_section": {
+      "type": "section",
+      "title": "Summary",
+      "binding": {
+        "source": "data",
+        "entity": "summary",
+        "id": "summary_001",
+        "field": "text"
+      },
+      "renderer": "paragraph"
+    },
+    "experience_section": {
+      "type": "section",
+      "title": "Experience",
+      "binding": {
+        "source": "data",
+        "collection": "experience"
+      },
+      "renderer": "experience"
+    },
+    "projects_section": {
+      "type": "section",
+      "title": "Projects",
+      "binding": {
+        "source": "data",
+        "collection": "projects"
+      },
+      "renderer": "projects"
+    },
+    "education_section": {
+      "type": "section",
+      "title": "Education",
+      "binding": {
+        "source": "data",
+        "collection": "education"
+      },
+      "renderer": "education"
+    }
+  }
+}

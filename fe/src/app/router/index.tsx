@@ -7,6 +7,8 @@ import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage
 import { JobsPage } from '@/features/jobs/pages/JobsPage'
 import { PeoplePage } from '@/features/people/pages/PeoplePage'
 import { ResumeBuilderPage } from '@/features/resume/pages/ResumeBuilderPage'
+import { ResumeListPage } from '@/features/resume/pages/ResumeListPage'
+import { TemplateSelectPage } from '@/features/resume/pages/TemplateSelectPage'
 import { GuestRoute } from './GuestRoute'
 import { paths } from './paths'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -49,6 +51,14 @@ export const router = createBrowserRouter([
           },
           {
             path: paths.resume,
+            element: <ResumeListPage />,
+          },
+          {
+            path: paths.resumeTemplate,
+            element: <TemplateSelectPage />,
+          },
+          {
+            path: '/resume/:id',
             element: <ResumeBuilderPage />,
           },
         ],
