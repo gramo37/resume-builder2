@@ -10,8 +10,11 @@ export class FrontendStack extends cdk.Stack {
 
     // 1. Private S3 bucket
     const bucket = new s3.Bucket(this, "FrontendBucket", {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ACLS_ONLY,
       encryption: s3.BucketEncryption.S3_MANAGED,
+      publicReadAccess: true,
+      websiteIndexDocument: "index.html",
+      websiteErrorDocument: "index.html",
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
