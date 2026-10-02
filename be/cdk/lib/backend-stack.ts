@@ -150,7 +150,7 @@ export class BackendStack extends cdk.Stack {
         blockDevices: [
           {
             deviceName: "/dev/xvda",
-            volume: autoscaling.BlockDeviceVolume.ebs(20, {
+            volume: autoscaling.BlockDeviceVolume.ebs(30, {
               volumeType: autoscaling.EbsDeviceVolumeType.GP3,
               encrypted: true,
             }),
