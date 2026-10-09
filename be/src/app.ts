@@ -12,8 +12,16 @@ export function createApp(options?: { authenticate?: RequestHandler }) {
   app.use(cors());
   app.use(express.json());
 
+  app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.originalUrl}`);
+    next();
+  });
+
   app.get('/health', (_req, res) => {
-    res.json({ success: true, message: 'ok' });
+    res.status(200).json({ success: true, message: 'ok' });
+  });
+  app.get('/', (_req, res) => {
+    res.status(200).json({ success: true, message: 'ok' });
   });
 
   app.use('/api/auth', authRoutes);
