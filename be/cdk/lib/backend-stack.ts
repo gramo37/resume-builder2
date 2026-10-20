@@ -1,366 +1,335 @@
+
 import * as cdk from "aws-cdk-lib";
-import * as ec2 from "aws-cdk-lib/aws-ec2";
-import * as ecs from "aws-cdk-lib/aws-ecs";
-import * as ecr from "aws-cdk-lib/aws-ecr";
-import * as iam from "aws-cdk-lib/aws-iam";
-import * as autoscaling from "aws-cdk-lib/aws-autoscaling";
 import { Construct } from "constructs";
-import { AmiHardwareType } from "aws-cdk-lib/aws-ecs";
+
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as ecr from "aws-cdk-lib/aws-ecr";
+import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
+
+import { CONFIG } from "./config";
+
+function imageFromEcr(scope: Construct, id: string, imageUri: string): ecs.ContainerImage {
+  const [repositoryUri, tag] = imageUri.split(":");
+  const repositoryName = repositoryUri.split("/").slice(1).join("/");
+  const repository = ecr.Repository.fromRepositoryName(scope, id, repositoryName);
+  return ecs.ContainerImage.fromEcrRepository(repository, tag ?? "latest");
+}
 
 export class BackendStack extends cdk.Stack {
   constructor(
     scope: Construct,
     id: string,
-    props?: cdk.StackProps
+    props?: cdk.StackProps,
   ) {
     super(scope, id, props);
 
-    /*
-     * ============================================================
-     * ECR
-     * ============================================================
-     */
+    // --------------------------------------------------
+    // 1. VPC
+    // --------------------------------------------------
 
-    const repository = new ecr.Repository(this, "BackendRepository", {
-      repositoryName: "applyant-backend",
-
-      lifecycleRules: [
-        {
-          maxImageCount: 5,
-        },
-      ],
-
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
-
-    /*
-     * ============================================================
-     * VPC
-     * ============================================================
-     *
-     * One AZ and no NAT Gateway to keep cost low.
-     */
-
-    const vpc = new ec2.Vpc(this, "BackendVpc", {
-      maxAzs: 1,
-
-      natGateways: 0,
+    const vpc = new ec2.Vpc(this, "ResumeBuilderVpc", {
+      vpcName: CONFIG.naming.vpcName,
+      maxAzs: CONFIG.networking.maxAvailabilityZones,
+      natGateways: CONFIG.networking.natGateways,
 
       subnetConfiguration: [
         {
-          name: "Public",
+          name: "public",
           subnetType: ec2.SubnetType.PUBLIC,
           cidrMask: 24,
         },
       ],
     });
 
-    /*
-     * ============================================================
-     * SECURITY GROUP
-     * ============================================================
-     */
+    // --------------------------------------------------
+    // 2. ECS Cluster
+    // --------------------------------------------------
 
-    const securityGroup = new ec2.SecurityGroup(
-      this,
-      "BackendSecurityGroup",
-      {
-        vpc,
-        description: "Security group for Applyant ECS backend",
-        allowAllOutbound: true,
-      }
-    );
-
-    // Backend API
-    securityGroup.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(4000),
-      "Allow backend API"
-    );
-
-    /*
-     * ============================================================
-     * ECS CLUSTER
-     * ============================================================
-     */
-
-    const cluster = new ecs.Cluster(this, "BackendCluster", {
+    const cluster = new ecs.Cluster(this, "ResumeBuilderCluster", {
+      clusterName: CONFIG.naming.clusterName,
       vpc,
-      clusterName: "applyant-backend-cluster",
+      containerInsightsV2: ecs.ContainerInsights.ENABLED,
     });
 
-    /*
-     * ============================================================
-     * EC2 INSTANCE ROLE
-     * ============================================================
-     *
-     * ECS EC2 instances need this role so that ECS can manage
-     * containers and pull images from ECR.
-     */
+    // --------------------------------------------------
+    // 3. CloudWatch Log Group
+    // --------------------------------------------------
 
-    const instanceRole = new iam.Role(this, "EcsInstanceRole", {
-      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AmazonEC2ContainerServiceforEC2Role"
-        ),
-
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "AmazonSSMManagedInstanceCore"
-        ),
-      ],
+    const logGroup = new logs.LogGroup(this, "ResumeBuilderLogGroup", {
+      logGroupName: CONFIG.naming.logGroupName,
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    /*
-     * ============================================================
-     * ECS EC2 CAPACITY
-     * ============================================================
-     */
+    const createLogDriver = (streamPrefix: string) =>
+      ecs.LogDrivers.awsLogs({
+        logGroup,
+        streamPrefix,
+      });
 
-    const autoScalingGroup = new autoscaling.AutoScalingGroup(
+    // --------------------------------------------------
+    // 4. Fargate Task Definition
+    // --------------------------------------------------
+
+    const taskDefinition = new ecs.FargateTaskDefinition(
       this,
-      "BackendAutoScalingGroup",
+      "ResumeBuilderTaskDefinition",
       {
-        vpc,
-    
-        vpcSubnets: {
-          subnetType: ec2.SubnetType.PUBLIC,
-        },
-    
-        instanceType: ec2.InstanceType.of(
-          ec2.InstanceClass.T4G,
-          ec2.InstanceSize.MICRO
-        ),
-    
-        machineImage: ecs.EcsOptimizedImage.amazonLinux2023(
-          AmiHardwareType.ARM
-        ),
-    
-        minCapacity: 1,
-        desiredCapacity: 1,
-        maxCapacity: 1,
-    
-        securityGroup,
-    
-        role: instanceRole,
-    
-        associatePublicIpAddress: true,
-    
-        blockDevices: [
-          {
-            deviceName: "/dev/xvda",
-            volume: autoscaling.BlockDeviceVolume.ebs(30, {
-              volumeType: autoscaling.EbsDeviceVolumeType.GP3,
-              encrypted: true,
-            }),
-          },
-        ],
-      }
+        family: CONFIG.naming.taskDefinitionName,
+        cpu: CONFIG.service.cpu,
+        memoryLimitMiB: CONFIG.service.memoryLimitMiB,
+      },
     );
 
-    const capacityProvider = new ecs.AsgCapacityProvider(
-      this,
-      "BackendCapacityProvider",
+    // API container: port 5000 (BACKEND_PORT)
+
+    const apiContainer = taskDefinition.addContainer(
+      "ApiContainer",
       {
-        autoScalingGroup,
-      }
-    );
-    
-    cluster.addAsgCapacityProvider(capacityProvider);
-
-    /*
-     * ============================================================
-     * ALLOW ECS EC2 INSTANCE TO PULL FROM ECR
-     * ============================================================
-     */
-
-    repository.grantPull(instanceRole);
-
-    /*
-     * ============================================================
-     * TASK EXECUTION ROLE
-     * ============================================================
-     *
-     * Used by ECS to:
-     * - Pull the image from ECR
-     * - Write logs to CloudWatch
-     */
-
-    const executionRole = new iam.Role(
-      this,
-      "BackendTaskExecutionRole",
-      {
-        assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
-
-        managedPolicies: [
-          iam.ManagedPolicy.fromAwsManagedPolicyName(
-            "service-role/AmazonECSTaskExecutionRolePolicy"
-          ),
-        ],
-      }
-    );
-
-    /*
-     * ============================================================
-     * TASK ROLE
-     * ============================================================
-     *
-     * This is the IAM role available INSIDE your Node.js
-     * application.
-     *
-     * For example:
-     * - S3
-     * - Cognito
-     * - other AWS APIs
-     */
-
-    const taskRole = new iam.Role(this, "BackendTaskRole", {
-      assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
-    });
-
-    /*
-     * Example:
-     *
-     * taskRole.addToPolicy(
-     *   new iam.PolicyStatement({
-     *     actions: ["s3:GetObject", "s3:PutObject"],
-     *     resources: ["arn:aws:s3:::your-bucket/*"],
-     *   })
-     * );
-     */
-
-    /*
-     * ============================================================
-     * ECS TASK DEFINITION
-     * ============================================================
-     */
-
-    const taskDefinition = new ecs.Ec2TaskDefinition(
-      this,
-      "BackendTaskDefinition",
-      {
-        family: "applyant-backend",
-
-        executionRole,
-        taskRole,
-
-        networkMode: ecs.NetworkMode.AWS_VPC,
-      }
-    );
-
-    /*
-     * ============================================================
-     * CONTAINER
-     * ============================================================
-     *
-     * IMPORTANT:
-     *
-     * We specify the repository but use a tag.
-     *
-     * GitHub Actions can push:
-     *
-     * applyant-backend:<git-sha>
-     *
-     * and then update the ECS task definition.
-     */
-
-    const container = taskDefinition.addContainer(
-      "BackendContainer",
-      {
-        image: ecs.ContainerImage.fromEcrRepository(
-          repository,
-          "latest"
-        ),
-
-        cpu: 256,
-        memoryLimitMiB: 512,
-
-        logging: ecs.LogDrivers.awsLogs({
-          streamPrefix: "applyant-backend",
-        }),
-
+        containerName: CONFIG.containers.api.name,
+        image: imageFromEcr(this, "ApiRepository", CONFIG.containers.api.image),
+        essential: true,
+        memoryReservationMiB: 512,
         environment: {
-          NODE_ENV: "production",
-          PORT: "4000",
-
-          AWS_REGION: this.region,
-          COGNITO_REGION: this.region,
-
-          // Do NOT put passwords/secrets here.
-          //
-          // DB credentials and Cognito client secret should
-          // eventually come from Secrets Manager.
+          ...CONFIG.containers.api.environment,
         },
-
-        healthCheck: {
-          command: [
-            "CMD-SHELL",
-            "wget -q -O- http://localhost:4000/health || exit 1",
-          ],
-          interval: cdk.Duration.seconds(30),
-          timeout: cdk.Duration.seconds(5),
-          retries: 3,
-          startPeriod: cdk.Duration.seconds(30),
-        },
-      }
+        logging: createLogDriver("api"),
+      },
     );
 
-    container.addPortMappings({
-      containerPort: 4000,
-      hostPort: 4000,
+    apiContainer.addPortMappings({
+      containerPort: CONFIG.containers.api.port,
       protocol: ecs.Protocol.TCP,
     });
 
-    /*
-     * ============================================================
-     * ECS SERVICE
-     * ============================================================
-     */
+    const cognitoRegion = CONFIG.containers.api.environment.COGNITO_REGION;
+    const userPoolId = CONFIG.containers.api.environment.COGNITO_USER_POOL_ID;
+    const userPoolArn = `arn:aws:cognito-idp:${cognitoRegion}:${this.account}:userpool/${userPoolId}`;
 
-    const service = new ecs.Ec2Service(this, "BackendService", {
-      cluster,
+    taskDefinition.addToTaskRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "cognito-idp:AdminInitiateAuth",
+          "cognito-idp:InitiateAuth",
+          "cognito-idp:SignUp",
+          "cognito-idp:ConfirmSignUp",
+          "cognito-idp:ResendConfirmationCode",
+          "cognito-idp:ForgotPassword",
+          "cognito-idp:ConfirmForgotPassword",
+        ],
+        resources: [userPoolArn],
+      }),
+    );
 
-      serviceName: "applyant-backend",
+    // GetUser and GlobalSignOut do not support a user-pool resource.
+    taskDefinition.addToTaskRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["cognito-idp:GetUser", "cognito-idp:GlobalSignOut"],
+        resources: ["*"],
+      }),
+    );
 
-      taskDefinition,
+    // --------------------------------------------------
+    // 5. Security Groups
+    // --------------------------------------------------
 
-      desiredCount: 1,
-
-      minHealthyPercent: 0,
-      maxHealthyPercent: 100,
-
-      deploymentController: {
-        type: ecs.DeploymentControllerType.ECS,
+    const albSecurityGroup = new ec2.SecurityGroup(
+      this,
+      "AlbSecurityGroup",
+      {
+        vpc,
+        description: "Public traffic to the Application Load Balancer",
+        allowAllOutbound: true,
       },
+    );
 
-      circuitBreaker: {
-        rollback: true,
+    albSecurityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(CONFIG.networking.albHttpPort),
+      "Allow HTTP traffic to ALB",
+    );
+
+    albSecurityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(CONFIG.networking.albHttpsPort),
+      "Allow HTTPS traffic to ALB",
+    );
+
+    const taskSecurityGroup = new ec2.SecurityGroup(
+      this,
+      "EcsTaskSecurityGroup",
+      {
+        vpc,
+        description: "Allow application traffic only from the ALB",
+        allowAllOutbound: true,
       },
+    );
 
-      healthCheckGracePeriod: cdk.Duration.seconds(60),
+    taskSecurityGroup.addIngressRule(
+      albSecurityGroup,
+      ec2.Port.tcp(CONFIG.containers.api.port),
+      "ALB to API",
+    );
+
+    // --------------------------------------------------
+    // 6. Application Load Balancer
+    // --------------------------------------------------
+
+    const alb = new elbv2.ApplicationLoadBalancer(
+      this,
+      "ResumeBuilderAlb",
+      {
+        loadBalancerName: CONFIG.naming.loadBalancerName,
+        vpc,
+        internetFacing: true,
+        securityGroup: albSecurityGroup,
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PUBLIC,
+        },
+      },
+    );
+
+    alb.setAttribute(
+      "idle_timeout.timeout_seconds",
+      String(CONFIG.service.albIdleTimeoutSeconds),
+    );
+
+    // --------------------------------------------------
+    // 7. Target Groups
+    // --------------------------------------------------
+
+    const apiTargetGroup = new elbv2.ApplicationTargetGroup(
+      this,
+      "ApiTargetGroup",
+      {
+        targetGroupName: CONFIG.naming.apiTargetGroupName,
+        vpc,
+        port: CONFIG.containers.api.port,
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        targetType: elbv2.TargetType.IP,
+        healthCheck: {
+          enabled: true,
+          path: CONFIG.containers.api.healthCheckPath,
+          healthyHttpCodes: "200-399",
+          interval: cdk.Duration.seconds(30),
+          timeout: cdk.Duration.seconds(5),
+          healthyThresholdCount: 2,
+          unhealthyThresholdCount: 3,
+        },
+      },
+    );
+
+    // --------------------------------------------------
+    // 8. Certificate, HTTPS listener, and routing rules
+    // --------------------------------------------------
+
+    // DNS is hosted at GoDaddy, so the validation CNAME is added there by hand.
+    // The ALB record already points resumebuilder-api.gramo37.in at this load balancer.
+    const certificate = new acm.Certificate(this, "ApiCertificate", {
+      domainName: CONFIG.domain.apiSubdomain,
+      validation: acm.CertificateValidation.fromDns(),
     });
 
-    /*
-     * ============================================================
-     * OUTPUTS
-     * ============================================================
-     */
-
-    new cdk.CfnOutput(this, "EcrRepositoryUri", {
-      value: repository.repositoryUri,
+    const httpsListener = alb.addListener("HttpsListener", {
+      port: CONFIG.networking.albHttpsPort,
+      protocol: elbv2.ApplicationProtocol.HTTPS,
+      certificates: [certificate],
+      sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS,
+      open: false,
+      defaultTargetGroups: [apiTargetGroup],
     });
 
-    new cdk.CfnOutput(this, "EcsClusterName", {
+    httpsListener.addTargetGroups("ApiRoutingRule", {
+      priority: CONFIG.routing.apiPriority,
+      conditions: [
+        elbv2.ListenerCondition.pathPatterns([
+          CONFIG.routing.apiPath,
+        ]),
+      ],
+      targetGroups: [apiTargetGroup],
+    });
+
+    alb.addListener("HttpListener", {
+      port: CONFIG.networking.albHttpPort,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      open: false,
+      defaultAction: elbv2.ListenerAction.redirect({
+        protocol: "HTTPS",
+        port: String(CONFIG.networking.albHttpsPort),
+        permanent: true,
+      }),
+    });
+
+    // --------------------------------------------------
+    // 9. ECS Fargate Service
+    // --------------------------------------------------
+
+    const service = new ecs.FargateService(
+      this,
+      "ResumeBuilderService",
+      {
+        serviceName: CONFIG.naming.serviceName,
+        cluster,
+        taskDefinition,
+        desiredCount: CONFIG.service.desiredCount,
+
+        assignPublicIp: CONFIG.networking.assignPublicIp,
+
+        securityGroups: [taskSecurityGroup],
+
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PUBLIC,
+        },
+
+        healthCheckGracePeriod: cdk.Duration.seconds(
+          CONFIG.service.healthCheckGracePeriodSeconds,
+        ),
+
+        minHealthyPercent: 50,
+        maxHealthyPercent: 200,
+
+        circuitBreaker: { rollback: true },
+
+        enableExecuteCommand: true,
+      },
+    );
+
+    // Register both application containers with the same service.
+    // The two target groups are attached to the ALB listener above.
+
+    service
+      .loadBalancerTarget({
+        containerName: CONFIG.containers.api.name,
+        containerPort: CONFIG.containers.api.port,
+      })
+      .attachToApplicationTargetGroup(apiTargetGroup);
+
+    // --------------------------------------------------
+    // 10. Outputs
+    // --------------------------------------------------
+
+    new cdk.CfnOutput(this, "ClusterName", {
       value: cluster.clusterName,
     });
 
-    new cdk.CfnOutput(this, "EcsServiceName", {
+    new cdk.CfnOutput(this, "ServiceName", {
       value: service.serviceName,
     });
 
-    new cdk.CfnOutput(this, "EcsTaskDefinition", {
-      value: taskDefinition.taskDefinitionArn,
+    new cdk.CfnOutput(this, "LoadBalancerDns", {
+      value: alb.loadBalancerDnsName,
+    });
+
+    new cdk.CfnOutput(this, "ApiBaseUrl", {
+      value: `https://${CONFIG.domain.apiSubdomain}${CONFIG.routing.apiPath.replace("*", "")}`,
+    });
+
+    new cdk.CfnOutput(this, "CertificateArn", {
+      value: certificate.certificateArn,
     });
   }
 }

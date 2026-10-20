@@ -21,7 +21,6 @@ services:
     build:
       context: ../..
       dockerfile: Dockerfile
-    image: applyant-be:local
     container_name: applyant-testing-api
     restart: unless-stopped
     ports:
