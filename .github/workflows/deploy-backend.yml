@@ -26,7 +26,7 @@ env:
   SERVICE_NAME: ResumeBuilderService
   TASK_FAMILY: ResumeBuilderTask
   API_CONTAINER: ResumeBuilderApi
-  API_REPOSITORY: resume-builder/be
+  API_REPOSITORY: resume-builder/backend
 
 jobs:
   deploy:
