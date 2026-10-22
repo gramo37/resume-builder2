@@ -3,7 +3,7 @@ name: Deploy Resume Builder Backend
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - "be/**"
       - "!be/cdk/**"
@@ -20,12 +20,13 @@ concurrency:
 
 env:
   AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: "526955697352"
   ECR_REGISTRY: 526955697352.dkr.ecr.us-east-1.amazonaws.com
   CLUSTER_NAME: ResumeBuilderCluster
   SERVICE_NAME: ResumeBuilderService
   TASK_FAMILY: ResumeBuilderTask
   API_CONTAINER: ResumeBuilderApi
-  API_REPOSITORY: resume-builder/backend
+  API_REPOSITORY: resume-builder/be
 
 jobs:
   deploy:
