@@ -23,9 +23,6 @@ export function createApp(options?: { authenticate?: RequestHandler }) {
   app.get('/api/health', (_req, res) => {
     res.status(200).json({ success: true, message: 'ok' });
   });
-  app.get("/api/version", (_req, res) => {
-    res.status(200).json({ success: true, message: 'ok', version: 1 });
-  });
   app.get('/', (_req, res) => {
     res.status(200).json({ success: true, message: 'ok' });
   });

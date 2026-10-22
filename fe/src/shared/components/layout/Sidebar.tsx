@@ -18,7 +18,7 @@ export function Sidebar({ open, onNavigate }: SidebarProps) {
   return (
     <aside className={cn(styles.sidebar, open && styles.open)} aria-label="Sidebar">
       <div className={styles.brand}>
-        <p className={styles.logo}>Applyant 23</p>
+        <p className={styles.logo}>Applyant</p>
         <span className={styles.mark}>Search</span>
       </div>
 
