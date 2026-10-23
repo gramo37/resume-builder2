@@ -93,7 +93,7 @@ export class BackendStack extends cdk.Stack {
         containerName: CONFIG.containers.api.name,
         image: imageFromEcr(this, "ApiRepository", CONFIG.containers.api.image),
         essential: true,
-        memoryReservationMiB: 512,
+        memoryReservationMiB: 256,
         environment: {
           ...CONFIG.containers.api.environment,
         },
