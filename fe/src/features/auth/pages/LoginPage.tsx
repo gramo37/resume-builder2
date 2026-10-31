@@ -16,8 +16,8 @@ export function LoginPage() {
 
       <section className={styles.panel}>
         <div className={styles.card}>
-          <p className={styles.cardKicker}>Welcome back</p>
-          <h2 className={styles.cardTitle}>Sign in to your account</h2>
+          <p className={styles.cardKicker}>Welcome back hello</p>
+          <h2 className={styles.cardTitle}>Sign in to your account 47834n</h2>
           <LoginForm />
         </div>
       </section>
