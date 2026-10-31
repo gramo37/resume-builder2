@@ -18,13 +18,13 @@ export function createApp(options?: { authenticate?: RequestHandler }) {
   });
 
   app.get('/health', (_req, res) => {
-    res.status(200).json({ success: true, message: 'ok 2' });
+    res.status(200).json({ success: true, message: 'ok' });
   });
   app.get('/api/health', (_req, res) => {
-    res.status(200).json({ success: true, message: 'ok 23' });
+    res.status(200).json({ success: true, message: 'ok' });
   });
   app.get('/', (_req, res) => {
-    res.status(200).json({ success: true, message: 'ok 233' });
+    res.status(200).json({ success: true, message: 'ok' });
   });
 
   app.use('/api/auth', authRoutes);
