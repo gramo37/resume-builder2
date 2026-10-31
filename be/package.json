@@ -8,6 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && node -e \"require('fs').cpSync('src/features/resume/templates','dist/features/resume/templates',{recursive:true})\"",
     "start": "node dist/server.js",
+    "migrate": "tsx src/shared/database/migrate.ts up",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

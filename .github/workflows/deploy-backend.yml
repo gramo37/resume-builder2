@@ -22,15 +22,14 @@ env:
   AWS_REGION: us-east-1
   AWS_ACCOUNT_ID: "526955697352"
   ECR_REGISTRY: 526955697352.dkr.ecr.us-east-1.amazonaws.com
-  CLUSTER_NAME: ResumeBuilderCluster
-  SERVICE_NAME: ResumeBuilderService
-  TASK_FAMILY: ResumeBuilderTask
-  API_CONTAINER: ResumeBuilderApi
   API_REPOSITORY: resume-builder/backend
+  EC2_HOST: 54.227.33.240
+  EC2_USER: ec2-user
+  EC2_COMPOSE_DIR: /home/ec2-user/resume-builder
 
 jobs:
   deploy:
-    name: Build image and deploy ECS
+    name: Build image and deploy on EC2
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
@@ -67,55 +66,45 @@ jobs:
           docker push "${ECR_REGISTRY}/${API_REPOSITORY}:latest"
 
           echo "api_image=${api_image}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
-      - name: Render task definition
+      - name: Read ECR password for the instance
+        id: ecr
+        run: |
+          password="$(aws ecr get-login-password --region "${AWS_REGION}")"
+          echo "::add-mask::${password}"
+          echo "password=${password}" >> "$GITHUB_OUTPUT"
+
+      - name: Replace containers on EC2
+        uses: appleboy/ssh-action@v1.2.2
         env:
-          API_IMAGE: ${{ steps.images.outputs.api_image }}
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition "${TASK_FAMILY}" \
-            --query taskDefinition \
-            > task-definition.json
+          ECR_PASSWORD: ${{ steps.ecr.outputs.password }}
+          IMAGE_TAG: ${{ steps.images.outputs.image_tag }}
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          envs: ECR_REGISTRY,API_REPOSITORY,ECR_PASSWORD,IMAGE_TAG,EC2_COMPOSE_DIR
+          script: |
+            set -euo pipefail
+            cd "${EC2_COMPOSE_DIR}"
 
-          jq \
-            --arg api_name "${API_CONTAINER}" \
-            --arg api_image "${API_IMAGE}" \
-            '
-              .containerDefinitions |= map(
-                if .name == $api_name then .image = $api_image
-                else .
-                end
-              )
-              | del(
-                  .taskDefinitionArn,
-                  .revision,
-                  .status,
-                  .requiresAttributes,
-                  .compatibilities,
-                  .registeredAt,
-                  .registeredBy
-                )
-            ' task-definition.json > task-definition-new.json
+            sudo docker compose stop
+            sudo docker compose rm -f
 
-      - name: Register task definition
-        id: task
-        run: |
-          arn="$(aws ecs register-task-definition \
-            --cli-input-json file://task-definition-new.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)"
-          echo "arn=${arn}" >> "$GITHUB_OUTPUT"
+            sudo docker rmi -f "applyant-be:latest" || true
+            sudo docker rmi -f "${ECR_REGISTRY}/${API_REPOSITORY}:latest" || true
+            sudo docker rmi -f "${ECR_REGISTRY}/${API_REPOSITORY}:${IMAGE_TAG}" || true
 
-      - name: Force new ECS deployment
-        run: |
-          aws ecs update-service \
-            --cluster "${CLUSTER_NAME}" \
-            --service "${SERVICE_NAME}" \
-            --task-definition "${{ steps.task.outputs.arn }}" \
-            --force-new-deployment
+            echo "${ECR_PASSWORD}" | sudo docker login \
+              --username AWS \
+              --password-stdin \
+              "${ECR_REGISTRY}"
 
-      - name: Wait for service to stabilize
-        run: |
-          aws ecs wait services-stable \
-            --cluster "${CLUSTER_NAME}" \
-            --services "${SERVICE_NAME}"
+            sudo docker pull "${ECR_REGISTRY}/${API_REPOSITORY}:${IMAGE_TAG}"
+            sudo docker tag \
+              "${ECR_REGISTRY}/${API_REPOSITORY}:${IMAGE_TAG}" \
+              applyant-be:latest
+
+            sudo docker compose up -d
+            sudo docker compose ps
